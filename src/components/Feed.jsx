@@ -3,6 +3,7 @@ import { Box, Stack, Typography } from "@mui/material";
 
 import { Videos, Sidebar } from "./";
 import { useParams } from "react-router-dom";
+import { getVideosAPI, getVideosTypeIdAPI } from "../utils/fetchFromAPI";
 
 const Feed = () => {
   const [selectedCategory, setSelectedCategory] = useState("New");
@@ -11,17 +12,28 @@ const Feed = () => {
   const params = useParams();
 
   useEffect(() => {
-
-
-
+    getVideosTypeIdAPI(params.id)
+    .then((result) => {
+      setVideos(result);
+    })
+    .catch(() => {
+      setVideos([]);
+      console.log("error call API get list video by typeId from BE")
+    })
   }, [params.id]);
 
   useEffect(() => {
-    let lstItem = [{ video_id: 1, video_name: "Build and Deploy 5 JavaScript & React API Projects in 10 Hours - Full Course | RapidAPI", channelDetail: "", marginTop: " ", thumbnail: "https://i.ytimg.com/vi/QU9c0053UAU/hq720.jpg", channelId: 1, channelTitle: "abc", channelId: 1, channelTitle: "JavaScript Mastery" },
-    { video_id: 2, video_name: "The movies Iron man 4: 0.1 Hours", channelDetail: "", marginTop: " ", thumbnail: "https://i.ytimg.com/vi/t86sKsR4pnk/hq720.jpg", channelId: 1, channelTitle: "abc", channelId: 1, channelTitle: "JavaScript Mastery" }
-    ];
+    // let lstItem = [{ video_id: 1, video_name: "Build and Deploy 5 JavaScript & React API Projects in 10 Hours - Full Course | RapidAPI", channelDetail: "", marginTop: " ", thumbnail: "https://i.ytimg.com/vi/QU9c0053UAU/hq720.jpg", channelId: 1, channelTitle: "abc", channelId: 1, channelTitle: "JavaScript Mastery" },
+    // { video_id: 2, video_name: "The movies Iron man 4: 0.1 Hours", channelDetail: "", marginTop: " ", thumbnail: "https://i.ytimg.com/vi/t86sKsR4pnk/hq720.jpg", channelId: 1, channelTitle: "abc", channelId: 1, channelTitle: "JavaScript Mastery" }
+    // ];
 
-    setVideos(lstItem)
+    getVideosAPI()
+    .then((result) => {
+      console.log("get result: ", result);
+      setVideos(result)
+    }) // khi call API thành công (status 2xx)
+    .catch(() => {console.log("eror call API get list video from BE")}) // khi call API thất bại (status khác 2xx)
+
   }, [])
 
   return (
