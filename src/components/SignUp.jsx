@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import { Box, CardMedia } from "@mui/material";
 
 import { Videos, ChannelCard } from ".";
+import { signUpAPI } from "../utils/fetchFromAPI";
+import {toast} from 'react-toastify'; // lib notification
 
 const SignUp = () => {
   const [channelDetail, setChannelDetail] = useState();
@@ -31,7 +33,25 @@ const SignUp = () => {
           <input className="form-control" id="pass" />
         </div>
         <div className="col-12">
-          <button type="button" className="btn btn-primary" >
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => {
+              let full_name = document.getElementById("fullName").value;
+              let email = document.getElementById("email").value;
+              let pass_word = document.getElementById("pass").value;
+              const payload = {full_name, email, pass_word};
+              signUpAPI(payload)
+              .then((result) => {
+                console.log("get result API sign up: ", result);
+                toast.success(result.message);
+              })
+              .catch((error) => {
+                console.log("error API sign up: ", error);
+                toast.error(error.response.data.message);
+              })
+            }}
+          >
             Sign Up
           </button>
         </div>
