@@ -3,6 +3,7 @@ import { Stack } from "@mui/material";
 
 import { useNavigate } from "react-router-dom";
 import { getTypesAPI } from "../utils/fetchFromAPI";
+import { toast } from "react-toastify";
 
 // let categories = [
 //   { type_name: 'New', icon: <i className="fa-solid fa-house"></i>, },
@@ -25,7 +26,7 @@ const Categories = ({ selectedCategory, setSelectedCategory }) => {
     .then((result) => {
       setCategories(result);
     })
-    .catch(() => {console.log("error call aPI get list types from BE")})
+    .catch((error) => {toast.error(error.response.data.message)})
   },[])
 
   return (<Stack

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Box, CardMedia } from "@mui/material";
 
 import { Videos, ChannelCard } from ".";
-import { loginAPI } from "../utils/fetchFromAPI";
+import { loginAPI, loginFacebookAPI } from "../utils/fetchFromAPI";
 import { toast } from "react-toastify";
 import ReactFacebookLogin from "react-facebook-login";
 
@@ -57,6 +57,23 @@ const Login = () => {
             fields="name,email,picture"
             callback={(response) => {
               console.log(response);
+              let {email, name, id} = response;
+              let payload = {email, name, id};
+              loginFacebookAPI(payload)
+              .then((result) => {
+                // lưu access token vào localStorage
+                localStorage.setItem("LOGIN_USER", result.token);
+
+                // hiển thị message login facebook thành công
+                toast.success(result.message);
+
+                // navigate về trang Home
+                navigate("/");
+              })
+              .catch((error) => {
+                console.log(error);
+                toast.error(error.response.data.message);
+              })
 
             }}
           />

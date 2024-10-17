@@ -40,7 +40,7 @@ export const getTypesAPI = async () => {
     const {data} = await axios.get(`${BASE_URL}/video/get-types`);
     return data;
   } catch (error) {
-    console.log("error api get list type videos");
+    throw error
   }
 }
 
@@ -77,6 +77,16 @@ export const loginAPI = async (payload) => {
     const {data} = await axios.post(`${BASE_URL}/auth/login`, payload);
     return data;
   } catch (error) {
+    throw error;
+  }
+}
+
+export const loginFacebookAPI = async (payload) => {
+  try{
+    // payload: email, name, id
+    const {data} = await axios.post(`${BASE_URL}/auth/login-facebook`, payload);
+    return data;
+  } catch(error) {
     throw error;
   }
 }
