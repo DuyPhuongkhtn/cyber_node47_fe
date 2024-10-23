@@ -21,6 +21,31 @@ export const fetchFromAPI = async (url) => {
   return data;
 };
 
+// thêm interceptor
+// b1: tạo axiosInstance
+export const axiosInstance = axios.create({
+  baseURL: `${BASE_URL}`
+});
+
+axiosInstance.interceptors.request.use(
+  (config) => {
+    // check flag requireAuth
+    // nếu requireAuth =true => truyền token vào header request
+    // ngược lại => bình thường
+    if (config.requireAuth) {
+      // lấy access token từ local storage
+      let accessToken = localStorage.getItem("LOGIN_USER");
+      if (accessToken) {
+        config.headers["token"] = accessToken;
+      }
+      return config;
+    }
+  },
+  () => {}
+);
+
+axiosInstance.interceptors.response.use()
+
 // define function call API get list video từ BE
 
 export const getVideosAPI = async () => {
@@ -37,7 +62,9 @@ export const getVideosAPI = async () => {
 
 export const getTypesAPI = async () => {
   try {
-    const {data} = await axios.get(`${BASE_URL}/video/get-types`);
+    const {data} = await axiosInstance.get(`${BASE_URL}/video/get-types`, {
+      requireAuth: true
+    });
     return data;
   } catch (error) {
     throw error
@@ -87,6 +114,26 @@ export const loginFacebookAPI = async (payload) => {
     const {data} = await axios.post(`${BASE_URL}/auth/login-facebook`, payload);
     return data;
   } catch(error) {
+    throw error;
+  }
+}
+
+export const forgotPassAPI = async (payload) => {
+  try {
+    // payload: email
+    let {data} = await axios.post(`${BASE_URL}/auth/forgot-password`, payload);
+    return data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export const changePassAPI = async (payload) => {
+  try {
+    // payload: email, code, newPass
+    let {data} = await axios.post(`${BASE_URL}/auth/change-password`, payload);
+    return data;
+  } catch (error) {
     throw error;
   }
 }
