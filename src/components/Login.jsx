@@ -48,6 +48,7 @@ const Login = () => {
                   navigate("/") // navigate sang trang home
                 })
                 .catch((error) => {
+                  console.log("error: ", error)
                   toast.error(error.ressponse.data.message);
                 })
             }}

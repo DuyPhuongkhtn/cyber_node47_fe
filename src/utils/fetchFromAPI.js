@@ -2,6 +2,9 @@ import axios from 'axios';
 
 export const BASE_URL = 'http://localhost:8080';
 
+// define const MAX_RETRIES = 5;
+const MAX_RETRIES = 20;
+
 const options = {
   params: {
     maxResults: 50,
@@ -38,19 +41,73 @@ axiosInstance.interceptors.request.use(
       if (accessToken) {
         config.headers["token"] = accessToken;
       }
-      return config;
     }
+    return config;
   },
-  () => {}
+  (error) => { return error }
 );
 
-axiosInstance.interceptors.response.use()
+let test = 0;
+
+axiosInstance.interceptors.response.use(
+  (config) => {
+    return config;
+  },
+  async (error) => {
+    const originalRequest = error.config;
+    // kiểm tra lỗi 401
+    if (error.response && error.response.status == 401) {
+      // console.log("error.response.status: ", error, !originalRequest._retryCount)
+      // nếu chưa có thuộc retryCount thì khởi tạo giá trị là 0;
+      if (test < MAX_RETRIES) {
+        console.log("test: ", test)
+        test = test + 1;
+        console.log("test");
+        try {
+          // gọi function extend token để lấy token mới
+          const data = await extendTokenAPI();
+          console.log("data: ", data)
+
+          // gán token mới vào header của request
+          originalRequest.headers["token"] = data.token;
+
+          // retry lại request với token mới
+          return axiosInstance(originalRequest);
+        } catch (error) {
+          console.log("error retry: ", error);
+        }
+
+      } else {
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+)
 
 // define function call API get list video từ BE
 
+// define axios extend token
+export const extendTokenAPI = async () => {
+  try {
+    console.log("get ")
+    const {data} = await axiosInstance.post(`${BASE_URL}/auth/extend-token`, {}, {
+      withCredentials: true // cho phép truyền cookie về cho BE
+    });
+
+    // console.log("get data: ", data)
+
+    // lưu new access token mới vào local storage
+    localStorage.setItem("LOGIN_USER", data.token);
+    return data;
+  } catch (error) {
+    throw error;
+  }
+}
+
 export const getVideosAPI = async () => {
   try {
-    const {data} = await axios.get(`${BASE_URL}/video/get-videos`)
+    const { data } = await axios.get(`${BASE_URL}/video/get-videos`)
     // console.log(result);
     return data;
   } catch (error) {
@@ -62,7 +119,7 @@ export const getVideosAPI = async () => {
 
 export const getTypesAPI = async () => {
   try {
-    const {data} = await axiosInstance.get(`${BASE_URL}/video/get-types`, {
+    const { data } = await axiosInstance.get(`${BASE_URL}/video/get-types`, {
       requireAuth: true
     });
     return data;
@@ -74,16 +131,16 @@ export const getTypesAPI = async () => {
 // define function call API get list video by type_id từ BE
 export const getVideosTypeIdAPI = async (typeId) => {
   try {
-    const {data} = await axios.get(`${BASE_URL}/video/get-videos/${typeId}`);
+    const { data } = await axios.get(`${BASE_URL}/video/get-videos/${typeId}`);
     return data;
-  } catch(error) {
+  } catch (error) {
     console.log("error api get list video by type_id");
   }
 }
 
 export const getVideoById = async (videoId) => {
   try {
-    const {data} = await axios.get(`${BASE_URL}/video/get-video/${videoId}`);
+    const { data } = await axios.get(`${BASE_URL}/video/get-video/${videoId}`);
     return data;
   } catch (error) {
     console.log("error api get video by id");
@@ -91,8 +148,8 @@ export const getVideoById = async (videoId) => {
 }
 
 export const signUpAPI = async (payload) => {
-  try{
-    const {data} = await axios.post(`${BASE_URL}/auth/sign-up`, payload);
+  try {
+    const { data } = await axios.post(`${BASE_URL}/auth/sign-up`, payload);
     return data;
   } catch (error) {
     throw error;
@@ -101,7 +158,10 @@ export const signUpAPI = async (payload) => {
 
 export const loginAPI = async (payload) => {
   try {
-    const {data} = await axios.post(`${BASE_URL}/auth/login`, payload);
+    const { data } = await axiosInstance.post(`${BASE_URL}/auth/login`, payload, {
+      withCredentials: true // setting để FE nhận được cookie cũng như là gửi cookie cho BE
+    });
+    console.log("get login API: ", data)
     return data;
   } catch (error) {
     throw error;
@@ -109,11 +169,11 @@ export const loginAPI = async (payload) => {
 }
 
 export const loginFacebookAPI = async (payload) => {
-  try{
+  try {
     // payload: email, name, id
-    const {data} = await axios.post(`${BASE_URL}/auth/login-facebook`, payload);
+    const { data } = await axios.post(`${BASE_URL}/auth/login-facebook`, payload);
     return data;
-  } catch(error) {
+  } catch (error) {
     throw error;
   }
 }
@@ -121,7 +181,7 @@ export const loginFacebookAPI = async (payload) => {
 export const forgotPassAPI = async (payload) => {
   try {
     // payload: email
-    let {data} = await axios.post(`${BASE_URL}/auth/forgot-password`, payload);
+    let { data } = await axios.post(`${BASE_URL}/auth/forgot-password`, payload);
     return data;
   } catch (error) {
     throw error;
@@ -131,7 +191,7 @@ export const forgotPassAPI = async (payload) => {
 export const changePassAPI = async (payload) => {
   try {
     // payload: email, code, newPass
-    let {data} = await axios.post(`${BASE_URL}/auth/change-password`, payload);
+    let { data } = await axios.post(`${BASE_URL}/auth/change-password`, payload);
     return data;
   } catch (error) {
     throw error;
